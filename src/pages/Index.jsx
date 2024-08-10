@@ -4,6 +4,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Textarea } from "@/components/ui/textarea"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { AlertCircle, Image as ImageIcon, Video as VideoIcon } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { moderateContent, getRemainingPosts, updateRemainingPosts, saveSocialMediaPost } from '../utils/socialMediaUtils';
@@ -15,6 +16,7 @@ const Index = () => {
   const [image, setImage] = useState(null);
   const [video, setVideo] = useState(null);
   const [postsRemaining, setPostsRemaining] = useState(0);
+  const [postType, setPostType] = useState('text');
   const { toast } = useToast();
 
   useEffect(() => {
@@ -45,6 +47,12 @@ const Index = () => {
     setVideo(e.target.files[0]);
   };
 
+  const handlePostTypeChange = (value) => {
+    setPostType(value);
+    setImage(null);
+    setVideo(null);
+  };
+
   const handleSubmit = async () => {
     if (postsRemaining === 0) {
       toast({
@@ -64,10 +72,19 @@ const Index = () => {
       return;
     }
 
-    if (!content && !image && !video) {
+    if (!content) {
       toast({
         title: "Error",
         description: "Please add some content to post.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if ((postType === 'image' && !image) || (postType === 'video' && !video)) {
+      toast({
+        title: "Error",
+        description: `Please upload a ${postType} for your post.`,
         variant: "destructive",
       });
       return;
@@ -129,31 +146,49 @@ const Index = () => {
         </div>
 
         <div className="mb-4">
-          <Label htmlFor="content">Content:</Label>
+          <Label htmlFor="postType">Post Type:</Label>
+          <Select onValueChange={handlePostTypeChange} defaultValue="text">
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Select post type" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="text">Text post</SelectItem>
+              <SelectItem value="image">Image post</SelectItem>
+              <SelectItem value="video">Video post</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="mb-4">
+          <Label htmlFor="content">{postType === 'text' ? 'Content:' : 'Description:'}</Label>
           <Textarea 
             id="content" 
-            placeholder="What's on your mind?" 
+            placeholder={postType === 'text' ? "What's on your mind?" : `Enter ${postType} description`}
             value={content}
             onChange={handleContentChange}
             className="mt-1"
           />
         </div>
 
-        <div className="mb-4">
-          <Label htmlFor="image">Image:</Label>
-          <div className="flex items-center mt-1">
-            <Input id="image" type="file" accept="image/*" onChange={handleImageChange} />
-            {image && <ImageIcon className="ml-2" />}
+        {postType === 'image' && (
+          <div className="mb-4">
+            <Label htmlFor="image">Image:</Label>
+            <div className="flex items-center mt-1">
+              <Input id="image" type="file" accept="image/*" onChange={handleImageChange} />
+              {image && <ImageIcon className="ml-2" />}
+            </div>
           </div>
-        </div>
+        )}
 
-        <div className="mb-4">
-          <Label htmlFor="video">Video:</Label>
-          <div className="flex items-center mt-1">
-            <Input id="video" type="file" accept="video/*" onChange={handleVideoChange} />
-            {video && <VideoIcon className="ml-2" />}
+        {postType === 'video' && (
+          <div className="mb-4">
+            <Label htmlFor="video">Video:</Label>
+            <div className="flex items-center mt-1">
+              <Input id="video" type="file" accept="video/*" onChange={handleVideoChange} />
+              {video && <VideoIcon className="ml-2" />}
+            </div>
           </div>
-        </div>
+        )}
 
         <Button onClick={handleSubmit} disabled={postsRemaining === 0}>
           Post to Social Media

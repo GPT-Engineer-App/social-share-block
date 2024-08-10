@@ -2,7 +2,10 @@ export const moderateContent = (content, image, video) => {
   // This is a simple example. In a real-world scenario, you'd want to use more sophisticated
   // content moderation techniques, possibly involving AI or external APIs.
   const forbiddenWords = ['porn', 'xxx', 'nsfw'];
-  const lowercaseContent = content.toLowerCase();
+  
+  // Remove tags for content checking
+  const strippedContent = content.replace(/<[^>]*>/g, '');
+  const lowercaseContent = strippedContent.toLowerCase();
   
   for (let word of forbiddenWords) {
     if (lowercaseContent.includes(word)) {
